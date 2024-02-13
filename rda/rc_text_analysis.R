@@ -1,6 +1,7 @@
 library(tidyverse)
 library(readxl)
 library(fuzzyjoin)
+library(stringr)
 
 # Save the current working directory
 original_wd <- getwd()
@@ -35,14 +36,30 @@ analysis <- text_join %>%
   summarise(count_numsegments = n(), total_price = sum(Price)) %>%
   arrange(group_name, NumSegments)
 
-# visualize bar
-ggplot(analysis, aes(x = NumSegments, y = count_numsegments)) +
+# visualize bar (send to Clara)
+bar <- ggplot(analysis, aes(x = NumSegments, y = count_numsegments)) +
   geom_bar(stat="identity") +
-  facet_wrap(~group_name)
+  facet_wrap(~group_name) +
+  theme_classic()
 
-# visualize scatter
-ggplot(analysis, aes(x = NumSegments, y = count_numsegments, group=group_name, color=group_name, size = count_numsegments)) +
+ggsave("fig/rc_text_bar.png", plot = bar)
+
+# visualize scatter (send to Clara)
+scatter <- ggplot(analysis, aes(x = NumSegments, y = count_numsegments, group=group_name, color=group_name, size = count_numsegments)) +
   geom_point() +
   xlab("Number of Segments") +
   ylab("Count") +
-  theme_minimal()
+  theme_classic()
+
+ggsave("fig/rc_text_scatter.png", plot = scatter)
+
+
+# text analysis
+
+# Extract "No. Units Affected:" from each string when it includes
+text_join$num_units <- str_extract(text_join$Body, "No. Units Affected: \\d+")
+
+# Calculate the % of "NA" values in the "FYSA Notification" rows
+text_join %>% 
+  filter(group_name == "FYSA Notification") %>%
+  summarise_each(funs(100 * mean(is.na(.))), num_units)
