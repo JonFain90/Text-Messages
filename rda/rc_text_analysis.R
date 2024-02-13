@@ -35,7 +35,14 @@ analysis <- text_join %>%
   summarise(count_numsegments = n(), total_price = sum(Price)) %>%
   arrange(group_name, NumSegments)
 
-# visualize
+# visualize bar
 ggplot(analysis, aes(x = NumSegments, y = count_numsegments)) +
   geom_bar(stat="identity") +
   facet_wrap(~group_name)
+
+# visualize scatter
+ggplot(analysis, aes(x = NumSegments, y = count_numsegments, group=group_name, color=group_name, size = count_numsegments)) +
+  geom_point() +
+  xlab("Number of Segments") +
+  ylab("Count") +
+  theme_minimal()
